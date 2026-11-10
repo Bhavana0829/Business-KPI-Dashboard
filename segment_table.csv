@@ -1,0 +1,5 @@
+Segment,customers,churned,churn_rate,avg_tenure_months,avg_tickets,avg_monthly_charge,mrr
+"A. Month-to-month, high friction",5,5,100.0,4.6,4.8,55.99,279.95
+"B. Month-to-month, moderate friction",2,2,100.0,13.0,3.0,64.99,129.98
+"C. One-year, building habit",4,0,0.0,19.75,1.5,64.99,259.96
+"D. Two-year, loyal",4,0,0.0,38.5,0.5,149.99,599.96

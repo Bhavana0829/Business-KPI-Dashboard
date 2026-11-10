@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Churn &amp; Retention KPI Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📉</text></svg>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F6F1E7;--card:#FFFDF8;--ink:#1D2328;--mute:#5B646B;--line:#DDD5C4;--churn:#B3261E;--keep:#17636E;--warn:#9A5B00;--soft:#EFE8D8;
+--serif:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#15191C;--card:#1E2428;--ink:#EEE9DD;--mute:#A4ADB3;--line:#38424A;--churn:#FF8A80;--keep:#6FC7D2;--warn:#F2B24C;--soft:#262E33}}
+*,*:before,*:after{box-sizing:inherit}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 48px}
+h1{font:800 clamp(26px,4vw,40px)/1.1 var(--serif);margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 20px;max-width:70ch}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px}
+.filters label{display:flex;flex-direction:column;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;gap:4px}
+select,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ink);border-radius:6px;padding:7px 10px;min-width:170px}
+button{cursor:pointer;min-width:0;font-weight:600}
+select:focus-visible,button:focus-visible{outline:3px solid var(--keep);outline-offset:2px}
+.count{margin-left:auto;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--ink);border-radius:8px;padding:12px 14px}
+.kpi.c{border-top-color:var(--churn)}.kpi.k{border-top-color:var(--keep)}.kpi.w{border-top-color:var(--warn)}
+.kpi b{display:block;font:800 28px/1.15 var(--serif)}.kpi span{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.kpi small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.card h2{font:600 18px/1.25 var(--serif);margin:0 0 2px}.card p.d{color:var(--mute);font-size:13px;margin:0 0 12px}
+.row{display:grid;grid-template-columns:110px 1fr 92px;gap:8px;align-items:center;margin:7px 0;font-size:13px}
+.row .l{font-weight:500}.row .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--soft);border:1px solid var(--line)}
+.bar i{display:block;height:100%}
+.ch{background:var(--churn);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 3px,transparent 3px 7px)}
+.rt{background:var(--keep)}.rk{background:var(--warn)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.insight{margin:12px 0 0;padding:9px 12px;background:var(--soft);border-left:4px solid var(--ink);border-radius:0 6px 6px 0;font-size:13.5px}
+.wide{grid-column:1/-1}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-weight:600;font-size:12px;border:1.5px solid}
+.High{color:var(--churn)}.Medium{color:var(--warn)}.Low{color:var(--keep)}
+.empty{padding:30px;text-align:center;color:var(--mute)}
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 18px}summary{cursor:pointer;font-weight:600}
+details p,details li{font-size:13.5px}footer{color:var(--mute);font-size:12.5px;margin-top:18px}
+</style></head><body><div class="wrap">
+<h1>Where are we losing subscribers, and what is it costing?</h1>
+<p class="sub">Churn, retention, revenue risk and customer segments for a subscription business. Use the filters to slice the 15-customer sample; every chart and insight updates.</p>
+<div class="filters" role="group" aria-label="Filters">
+<label>Contract<select id="fC"></select></label><label>Tenure band<select id="fT"></select></label><label>Payment method<select id="fP"></select></label>
+<button id="rst" type="button">Reset filters</button><div class="count" id="cnt" aria-live="polite"></div></div>
+<section class="kpis" id="kpis" aria-label="Key metrics"></section>
+<div class="grid" id="grid"></div>
+<details><summary>KPI definitions &amp; risk-score rules</summary>
+<ul><li><b>Churn rate</b> = churned customers ÷ all customers in view.</li><li><b>Retention rate</b> = 1 − churn rate.</li>
+<li><b>MRR lost</b> = sum of MonthlyCharges of churned customers. <b>% of MRR</b> = that ÷ MRR of all customers in view.</li>
+<li><b>Revenue at risk</b> = MonthlyCharges of <i>active</i> customers whose risk band is Medium or High (forward-looking). Annualised = ×12.</li>
+<li><b>Tenure KPIs</b> = average TenureMonths, compared for churned vs retained customers.</li>
+<li><b>Risk score (0–10)</b>: contract (M2M 3 / 1-yr 1 / 2-yr 0) + tenure (≤6: 3, 7–12: 2, 13–24: 1, &gt;24: 0) + tickets (≥5: 3, 3–4: 2, 1–2: 1, 0: 0) + Basic plan 1. High ≥ 7, Medium 4–6, Low ≤ 3.</li></ul></details>
+<footer>Source: cleaned_customer_churn.csv · n = 15 customers. Small sample: patterns are indicative, not statistically conclusive. Colours are paired with hatching and text labels so meaning never relies on colour alone.</footer>
+</div>
+<script>
+const RAW=[{"id": "CUST-1001", "gender": "Female", "age": 34, "tenure": 12, "sub": "Basic", "monthly": 49.99, "total": 599.88, "contract": "Month-to-Month", "tickets": 3, "pay": "Credit Card", "churn": true}, {"id": "CUST-1002", "gender": "Male", "age": 45, "tenure": 24, "sub": "Pro", "monthly": 79.99, "total": 1919.76, "contract": "One Year", "tickets": 1, "pay": "Bank Transfer", "churn": false}, {"id": "CUST-1003", "gender": "Female", "age": 29, "tenure": 6, "sub": "Basic", "monthly": 49.99, "total": 299.94, "contract": "Month-to-Month", "tickets": 5, "pay": "UPI", "churn": true}, {"id": "CUST-1004", "gender": "Male", "age": 52, "tenure": 36, "sub": "Enterprise", "monthly": 149.99, "total": 5399.64, "contract": "Two Year", "tickets": 0, "pay": "Credit Card", "churn": false}, {"id": "CUST-1005", "gender": "Female", "age": 41, "tenure": 8, "sub": "Pro", "monthly": 79.99, "total": 639.92, "contract": "Month-to-Month", "tickets": 4, "pay": "Debit Card", "churn": true}, {"id": "CUST-1006", "gender": "Male", "age": 31, "tenure": 18, "sub": "Basic", "monthly": 49.99, "total": 899.82, "contract": "One Year", "tickets": 2, "pay": "UPI", "churn": false}, {"id": "CUST-1007", "gender": "Female", "age": 23, "tenure": 3, "sub": "Basic", "monthly": 49.99, "total": 149.97, "contract": "Month-to-Month", "tickets": 6, "pay": "Credit Card", "churn": true}, {"id": "CUST-1008", "gender": "Male", "age": 60, "tenure": 48, "sub": "Enterprise", "monthly": 149.99, "total": 7199.52, "contract": "Two Year", "tickets": 1, "pay": "Bank Transfer", "churn": false}, {"id": "CUST-1009", "gender": "Female", "age": 38, "tenure": 15, "sub": "Pro", "monthly": 79.99, "total": 1199.85, "contract": "One Year", "tickets": 2, "pay": "Credit Card", "churn": false}, {"id": "CUST-1010", "gender": "Male", "age": 27, "tenure": 4, "sub": "Basic", "monthly": 49.99, "total": 199.96, "contract": "Month-to-Month", "tickets": 4, "pay": "UPI", "churn": true}, {"id": "CUST-1011", "gender": "Female", "age": 49, "tenure": 30, "sub": "Enterprise", "monthly": 149.99, "total": 4499.7, "contract": "Two Year", "tickets": 0, "pay": "Credit Card", "churn": false}, {"id": "CUST-1012", "gender": "Male", "age": 33, "tenure": 14, "sub": "Pro", "monthly": 79.99, "total": 1119.86, "contract": "Month-to-Month", "tickets": 3, "pay": "Debit Card", "churn": true}, {"id": "CUST-1013", "gender": "Female", "age": 55, "tenure": 22, "sub": "Basic", "monthly": 49.99, "total": 1099.78, "contract": "One Year", "tickets": 1, "pay": "Bank Transfer", "churn": false}, {"id": "CUST-1014", "gender": "Male", "age": 26, "tenure": 2, "sub": "Basic", "monthly": 49.99, "total": 99.98, "contract": "Month-to-Month", "tickets": 5, "pay": "UPI", "churn": true}, {"id": "CUST-1015", "gender": "Female", "age": 43, "tenure": 40, "sub": "Enterprise", "monthly": 149.99, "total": 5999.6, "contract": "Two Year", "tickets": 1, "pay": "Credit Card", "churn": false}];
+const sc=r=>({"Month-to-Month":3,"One Year":1,"Two Year":0}[r.contract])+(r.tenure<=6?3:r.tenure<=12?2:r.tenure<=24?1:0)+(r.tickets>=5?3:r.tickets>=3?2:r.tickets>=1?1:0)+(r.sub==="Basic"?1:0);
+const bd=s=>s>=7?"High":s>=4?"Medium":"Low";
+const tb=t=>t<=6?"0–6 months":t<=12?"7–12 months":t<=24?"13–24 months":"25+ months";
+const D=RAW.map(r=>({...r,score:sc(r),band:bd(sc(r)),tband:tb(r.tenure)}));
+D.forEach(r=>r.band=bd(r.score));
+const $=id=>document.getElementById(id),sum=(a,f)=>a.reduce((s,x)=>s+f(x),0),avg=(a,f)=>a.length?sum(a,f)/a.length:0;
+const money=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}),pct=v=>(v*100).toFixed(1)+"%";
+const uniq=k=>[...new Set(D.map(r=>r[k]))];
+const orders={contract:["Month-to-Month","One Year","Two Year"],tband:["0–6 months","7–12 months","13–24 months","25+ months"],sub:["Basic","Pro","Enterprise"],pay:uniq("pay").sort()};
+function fill(id,vals){$(id).innerHTML='<option value="">All</option>'+vals.map(v=>`<option>${v}</option>`).join("")}
+fill("fC",orders.contract);fill("fT",orders.tband);fill("fP",orders.pay);
+["fC","fT","fP"].forEach(i=>$(i).addEventListener("change",render));
+$("rst").onclick=()=>{["fC","fT","fP"].forEach(i=>$(i).value="");render()};
+function groups(a,key){return orders[key].map(l=>{const g=a.filter(r=>r[key]===l);return{l,n:g.length,c:g.filter(r=>r.churn).length}}).filter(g=>g.n)}
+function stack(a,key,title,desc){
+  const g=groups(a,key);let h=`<div class="card"><h2>${title}</h2><p class="d">${desc}</p>`;
+  g.forEach(x=>h+=`<div class="row"><span class="l">${x.l}</span><div class="bar" role="img" aria-label="${x.l}: ${x.c} of ${x.n} churned"><i class="ch" style="width:${x.c/x.n*100}%"></i><i class="rt" style="width:${(x.n-x.c)/x.n*100}%"></i></div><span class="v">${x.c}/${x.n} · ${Math.round(x.c/x.n*100)}%</span></div>`);
+  h+=`<div class="legend"><span><i class="ch"></i>Churned</span><span><i class="rt"></i>Retained</span></div>`;
+  const top=[...g].sort((p,q)=>q.c/q.n-p.c/p.n||q.n-p.n)[0],low=[...g].sort((p,q)=>p.c/p.n-q.c/q.n)[0];
+  h+=`<p class="insight"><b>Insight:</b> ${g.length<2?`Only one ${title.toLowerCase().replace("churn by ","")} group is in view (${top.l}: ${top.c} of ${top.n} churned).`:`${top.l} churns most (${Math.round(top.c/top.n*100)}%, ${top.c} of ${top.n}); ${low.l} churns least (${Math.round(low.c/low.n*100)}%).`}</p></div>`;return h}
+function render(){
+  const f={contract:$("fC").value,tband:$("fT").value,pay:$("fP").value};
+  const a=D.filter(r=>(!f.contract||r.contract===f.contract)&&(!f.tband||r.tband===f.tband)&&(!f.pay||r.pay===f.pay));
+  $("cnt").textContent=`Showing ${a.length} of ${D.length} customers`;
+  if(!a.length){$("kpis").innerHTML="";$("grid").innerHTML='<div class="card wide empty">No customers match these filters. Try resetting.</div>';return}
+  const ch=a.filter(r=>r.churn),ac=a.filter(r=>!r.churn),mrr=sum(a,r=>r.monthly),lost=sum(ch,r=>r.monthly);
+  const risk=ac.filter(r=>r.band!=="Low"),rmrr=sum(risk,r=>r.monthly);
+  $("kpis").innerHTML=[
+   ["c","Churn rate",pct(ch.length/a.length),`${ch.length} of ${a.length} customers`],
+   ["k","Retention rate",pct(ac.length/a.length),`${ac.length} customers retained`],
+   ["c","MRR lost",money(lost),`${pct(lost/mrr)} of MRR · ${money(lost*12)}/yr`],
+   ["w","Revenue at risk",money(rmrr),`${risk.length} active Medium/High · ${money(rmrr*12)}/yr`],
+   ["","Avg tenure (all)",avg(a,r=>r.tenure).toFixed(1)+" mo",`Churned ${ch.length?avg(ch,r=>r.tenure).toFixed(1):"–"} vs retained ${ac.length?avg(ac,r=>r.tenure).toFixed(1):"–"}`]
+  ].map(k=>`<div class="kpi ${k[0]}"><span>${k[1]}</span><b>${k[2]}</b><small>${k[3]}</small></div>`).join("");
+  let h=stack(a,"contract","Churn by contract","Share of customers who churned, by contract type.")+stack(a,"tband","Churn by tenure band","Do newer customers leave sooner?")+stack(a,"pay","Churn by payment method","Share who churned, by how they pay.");
+  // support tickets
+  const tk=[["Churned",ch,"ch"],["Retained",ac,"rt"]].filter(x=>x[1].length),mx=Math.max(...tk.map(x=>avg(x[1],r=>r.tickets)),1);
+  h+=`<div class="card"><h2>Support tickets: churned vs retained</h2><p class="d">Average tickets per customer.</p>`+tk.map(x=>`<div class="row"><span class="l">${x[0]}</span><div class="bar" role="img" aria-label="${x[0]} average tickets ${avg(x[1],r=>r.tickets).toFixed(1)}"><i class="${x[2]}" style="width:${avg(x[1],r=>r.tickets)/mx*100}%"></i></div><span class="v">${avg(x[1],r=>r.tickets).toFixed(1)} avg</span></div>`).join("")+
+   `<p class="insight"><b>Insight:</b> ${tk.length<2?"Only one outcome group in view, so no comparison is possible.":`Churned customers raised ${(avg(ch,r=>r.tickets)/Math.max(avg(ac,r=>r.tickets),.01)).toFixed(1)}× as many tickets as retained ones (${avg(ch,r=>r.tickets).toFixed(1)} vs ${avg(ac,r=>r.tickets).toFixed(1)}). Repeated contacts are an early warning sign.`}</p></div>`;
+  // revenue by plan
+  const sg=orders.sub.map(l=>{const g=a.filter(r=>r.sub===l);return{l,lost:sum(g.filter(r=>r.churn),r=>r.monthly),risk:sum(g.filter(r=>!r.churn&&r.band!=="Low"),r=>r.monthly),ok:sum(g.filter(r=>!r.churn&&r.band==="Low"),r=>r.monthly),t:sum(g,r=>r.monthly)}}).filter(x=>x.t),mt=Math.max(...sg.map(x=>x.t));
+  h+=`<div class="card"><h2>Monthly revenue by plan</h2><p class="d">Lost to churn, at risk (active, Medium/High), and stable.</p>`+sg.map(x=>`<div class="row"><span class="l">${x.l}</span><div class="bar" style="width:${x.t/mt*100}%;min-width:30px" role="img" aria-label="${x.l}: lost ${money(x.lost)}, at risk ${money(x.risk)}, stable ${money(x.ok)}"><i class="ch" style="width:${x.lost/x.t*100}%"></i><i class="rk" style="width:${x.risk/x.t*100}%"></i><i class="rt" style="width:${x.ok/x.t*100}%"></i></div><span class="v">${money(x.t)}</span></div>`).join("")+
+   `<div class="legend"><span><i class="ch"></i>Lost</span><span><i class="rk"></i>At risk</span><span><i class="rt"></i>Stable</span></div>`;
+  const wl=[...sg].sort((p,q)=>q.lost-p.lost)[0];
+  h+=`<p class="insight"><b>Insight:</b> ${wl.lost>0?`${wl.l} lost the most revenue (${money(wl.lost)}/month, ${pct(wl.lost/Math.max(lost,.01))} of all MRR lost).`:"No revenue has been lost in this view."} ${rmrr>0?`${money(rmrr)}/month is still active but flagged Medium/High risk.`:"No active revenue is flagged at risk."}</p></div>`;
+  // table
+  const rows=[...a].sort((p,q)=>q.score-p.score||q.monthly-p.monthly);
+  h+=`<div class="card wide"><h2>Customer risk list</h2><p class="d">Sorted by risk score (0–10). Active customers with Medium/High scores are the retention team's call list.</p><div class="tw"><table><thead><tr><th>Customer</th><th>Contract</th><th>Plan</th><th>Tenure</th><th>Tickets</th><th>MRR</th><th>Score</th><th>Band</th><th>Status</th></tr></thead><tbody>`+
+   rows.map(r=>`<tr><td>${r.id}</td><td>${r.contract}</td><td>${r.sub}</td><td>${r.tenure} mo</td><td>${r.tickets}</td><td>${money(r.monthly)}</td><td>${r.score}</td><td><span class="pill ${r.band}">${r.band}</span></td><td>${r.churn?"Churned":"Active"}</td></tr>`).join("")+`</tbody></table></div>
+   <p class="insight"><b>Insight:</b> ${(()=>{const hi=a.filter(r=>r.band==="High"),hc=hi.filter(r=>r.churn).length;return hi.length?`${hc} of ${hi.length} High-risk customers have already churned. The score separates well here, but on only ${D.length} rows it is in-sample and should be re-tested on new data.`:"No High-risk customers in this view."})()}</p></div>`;
+  $("grid").innerHTML=h}
+render();
+</script></body></html>
